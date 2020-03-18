@@ -4,6 +4,8 @@ import android.app.AlertDialog;
 import android.content.DialogInterface;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
+import android.support.v7.widget.LinearLayoutManager;
+import android.support.v7.widget.RecyclerView;
 import android.support.v7.widget.SearchView;
 import android.view.ContextMenu;
 import android.view.LayoutInflater;
@@ -25,7 +27,7 @@ import java.util.Collections;
 
 public class MainActivity extends AppCompatActivity {
     DBHelper dbHelper;
-    ListView listView;
+    RecyclerView listView;
     ArrayList<SinhVien> arrayList;
     ArrayList<SinhVien> arrayListtmp;
 
@@ -41,20 +43,22 @@ public class MainActivity extends AppCompatActivity {
     final int UPDATE_TYPE = 1;
     static int TYPE;
 
-
-
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
         dbHelper= new DBHelper(MainActivity.this);
 
-        listView = findViewById(R.id.listView);
+        listView = findViewById(R.id.recyclerView);
         arrayList = dbHelper.getSinhVien();
         arrayListtmp = dbHelper.getSinhVien();
 
 
         sinhVienAdapter = new SinhVienAdapter(MainActivity.this,arrayList);
+        LinearLayoutManager linearLayoutManager = new LinearLayoutManager(this,
+                RecyclerView.VERTICAL, false);
+
+        listView.setLayoutManager(linearLayoutManager);
         listView.setAdapter(sinhVienAdapter);
 
         // Context menu register
@@ -77,6 +81,7 @@ public class MainActivity extends AppCompatActivity {
             public boolean onQueryTextChange(String s) {
                 ArrayList<SinhVien> tmp = new ArrayList<>();
 
+
                 for(SinhVien sv : arrayListtmp){
                     if(sv.name.toLowerCase().contains(s.toLowerCase())){
                         tmp.add(sv);
@@ -84,8 +89,7 @@ public class MainActivity extends AppCompatActivity {
                 }
 
                 if(tmp.size() > 0) {
-                    sinhVienAdapter.clear();
-                    sinhVienAdapter.addAll(tmp);
+                    sinhVienAdapter.swap(tmp);
                     sinhVienAdapter.notifyDataSetChanged();
                 }
                 if(tmp.size()==0){
@@ -195,16 +199,14 @@ public class MainActivity extends AppCompatActivity {
             case INSERT_TYPE:
                 if(dbHelper.insertSinhVien(sinhVien) > 0){
                     arrayListtmp = dbHelper.getSinhVien();
-                    sinhVienAdapter.clear();
-                    sinhVienAdapter.addAll(dbHelper.getSinhVien());
+                    sinhVienAdapter.swap(dbHelper.getSinhVien());
                     sinhVienAdapter.notifyDataSetChanged();
                 } else {
                     Toast.makeText(this, "error", Toast.LENGTH_SHORT).show();
                 } break;
             case UPDATE_TYPE:
                 if(dbHelper.updateSinhVein(sinhVien) > 0){
-                    sinhVienAdapter.clear();
-                    sinhVienAdapter.addAll(dbHelper.getSinhVien());
+                    sinhVienAdapter.swap(dbHelper.getSinhVien());
                     sinhVienAdapter.notifyDataSetChanged();
 
                     arrayListtmp = dbHelper.getSinhVien();
