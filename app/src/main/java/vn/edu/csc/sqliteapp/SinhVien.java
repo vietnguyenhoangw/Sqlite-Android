@@ -6,6 +6,9 @@ public class SinhVien implements Comparable<SinhVien>{
     int gender;
     byte[] image;
 
+    public SinhVien() {
+    }
+
     public SinhVien(String name, int gender) {
         this.id = id;
         this.name = name;

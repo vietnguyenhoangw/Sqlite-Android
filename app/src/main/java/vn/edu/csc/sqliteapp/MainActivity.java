@@ -2,9 +2,6 @@ package vn.edu.csc.sqliteapp;
 
 import android.app.AlertDialog;
 import android.content.DialogInterface;
-import android.graphics.Bitmap;
-import android.graphics.BitmapFactory;
-import android.graphics.drawable.BitmapDrawable;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.support.v7.widget.SearchView;
@@ -19,9 +16,10 @@ import android.widget.AdapterView;
 import android.widget.Button;
 import android.widget.EditText;
 import android.widget.ListView;
+import android.widget.RadioButton;
+import android.widget.RadioGroup;
 import android.widget.Toast;
 
-import java.io.ByteArrayOutputStream;
 import java.util.ArrayList;
 import java.util.Collections;
 
@@ -35,9 +33,15 @@ public class MainActivity extends AppCompatActivity {
 
     /* Dialog */
     EditText edtUserNameInput;
-    EditText edtGenderInput;
-    String userName = "";
-    String gender = "";
+    RadioGroup genderRadioGroup;
+    RadioButton maleRadioBtn;
+    RadioButton femaleRadioBtn;
+
+    final int INSERT_TYPE = 0;
+    final int UPDATE_TYPE = 1;
+    static int TYPE;
+
+
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -95,8 +99,6 @@ public class MainActivity extends AppCompatActivity {
             }
         });
 
-
-
         return super.onCreateOptionsMenu(menu);
     }
 
@@ -106,45 +108,39 @@ public class MainActivity extends AppCompatActivity {
     @Override
     public boolean onOptionsItemSelected(MenuItem item) {
         if(item.getItemId() == R.id.mnuInsert){
-
-            craeteDialog();
-
+            TYPE = 0;
+            craeteDialog(0);
 //            Bitmap image = BitmapFactory.decodeResource(getResources(), R.drawable.image_2);
 //
 //            ByteArrayOutputStream stream = new ByteArrayOutputStream();
 //            image.compress(Bitmap.CompressFormat.JPEG, 100, stream);
 //            byte[] imageSV = stream.toByteArray();
-//
-//            SinhVien sinhVien = new SinhVien("Vu DInh Ai",1,imageSV );
-//            if(dbHelper.insertSinhVien(sinhVien) > 0){
-//                arrayListtmp = dbHelper.getSinhVien();
-//                sinhVienAdapter.clear();
-//                sinhVienAdapter.addAll(dbHelper.getSinhVien());
-//                sinhVienAdapter.notifyDataSetChanged();
-//            }else {
-//                Toast.makeText(this, "error", Toast.LENGTH_SHORT).show();
-//            }
-
-
-        }else {
+        } else {
             Collections.sort(arrayList);
             sinhVienAdapter.notifyDataSetChanged();
         }
         return super.onOptionsItemSelected(item);
     }
 
-    /* Dialog configure */
-    private void craeteDialog() {
+    /*
+     * Dialog configure
+     * */
+    private void craeteDialog(final int id) {
         LayoutInflater li = LayoutInflater.from(this);
-        final View dialogView = li.inflate(R.layout.name_input_dialog, null);
+        final View dialogView = li.inflate(R.layout.user_input_dialog, null);
 
         final AlertDialog alertDialogBuilder = new AlertDialog.Builder(this)
                 .setCancelable(true)
                 .setPositiveButton("OK", null)
+                .setNegativeButton("Canel", null)
                 .create();
         alertDialogBuilder.setView(dialogView);
 
+        /* widget mapping */
         edtUserNameInput = dialogView.findViewById(R.id.edtUserNameInput);
+        maleRadioBtn = dialogView.findViewById(R.id.maleRadioBtn);
+        femaleRadioBtn = dialogView.findViewById(R.id.femaleRadioBtn);
+        genderRadioGroup = dialogView.findViewById(R.id.genderRadioGroup);
 
         alertDialogBuilder.setOnShowListener(new DialogInterface.OnShowListener() {
             @Override
@@ -157,8 +153,27 @@ public class MainActivity extends AppCompatActivity {
                             edtUserNameInput.setError("Empty name!");
                         }
                         else {
-                            userName = edtUserNameInput.getText().toString();
-//                            gender = edtGenderInput.getText().toString();
+                            int gender;
+
+                            switch (genderRadioGroup.getCheckedRadioButtonId()) {
+                                case R.id.maleRadioBtn:
+                                    gender = 0;
+                                    break;
+                                case R.id.femaleRadioBtn:
+                                    gender = 1;
+                                    break;
+                                default:
+                                    return;
+                            }
+
+                            if (TYPE == INSERT_TYPE) {
+                                SinhVien sinhVien = new SinhVien(edtUserNameInput.getText() + "", gender);
+                                insertAndUpdateUser(sinhVien);
+                            } else {
+                                SinhVien sinhVien = new SinhVien(id,edtUserNameInput.getText() + "", gender, null);
+                                insertAndUpdateUser(sinhVien);
+                            }
+
                             // when everything is ok, using dismiss.
                             alertDialogBuilder.dismiss();
                         }
@@ -173,6 +188,32 @@ public class MainActivity extends AppCompatActivity {
         lp.dimAmount=1f;
         alertDialogBuilder.getWindow().setAttributes(lp);
         alertDialogBuilder.getWindow().addFlags(WindowManager.LayoutParams.FLAG_BLUR_BEHIND);
+    }
+
+    public void insertAndUpdateUser(SinhVien sinhVien) {
+        switch (TYPE) {
+            case INSERT_TYPE:
+                if(dbHelper.insertSinhVien(sinhVien) > 0){
+                    arrayListtmp = dbHelper.getSinhVien();
+                    sinhVienAdapter.clear();
+                    sinhVienAdapter.addAll(dbHelper.getSinhVien());
+                    sinhVienAdapter.notifyDataSetChanged();
+                } else {
+                    Toast.makeText(this, "error", Toast.LENGTH_SHORT).show();
+                } break;
+            case UPDATE_TYPE:
+                if(dbHelper.updateSinhVein(sinhVien) > 0){
+                    sinhVienAdapter.clear();
+                    sinhVienAdapter.addAll(dbHelper.getSinhVien());
+                    sinhVienAdapter.notifyDataSetChanged();
+
+                    arrayListtmp = dbHelper.getSinhVien();
+                }else {
+                    Toast.makeText(this, "Have error, try again.", Toast.LENGTH_SHORT).show();
+                } break;
+            default:
+                return;
+        }
     }
 
     @Override
@@ -204,20 +245,10 @@ public class MainActivity extends AppCompatActivity {
             sinhVienAdapter.notifyDataSetChanged();
             arrayListtmp = dbHelper.getSinhVien();
 
-        }else {
-            SinhVien sinhVien = new SinhVien(ID,"abc",1,null);
-
-            if(dbHelper.updateSinhVein(sinhVien) > 0){
-                sinhVienAdapter.clear();
-                sinhVienAdapter.addAll(dbHelper.getSinhVien());
-                sinhVienAdapter.notifyDataSetChanged();
-
-                arrayListtmp = dbHelper.getSinhVien();
-            }else {
-                Toast.makeText(this, "Have error, try again.", Toast.LENGTH_SHORT).show();
-            }
+        } else {
+            TYPE = 1;
+            craeteDialog(ID);
         }
-
 
         return super.onContextItemSelected(item);
     }

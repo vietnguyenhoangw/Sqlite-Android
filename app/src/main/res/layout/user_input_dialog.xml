@@ -35,18 +35,19 @@
         android:textAppearance="?android:attr/textAppearanceLarge" />
 
     <RadioGroup
+        android:id="@+id/genderRadioGroup"
         android:layout_marginTop="6px"
         android:layout_width="match_parent"
         android:layout_height="wrap_content">
 
         <RadioButton
-            android:id="@+id/radioButton"
+            android:id="@+id/maleRadioBtn"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:text="Male" />
 
         <RadioButton
-            android:id="@+id/radioButton2"
+            android:id="@+id/femaleRadioBtn"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:text="Female" />

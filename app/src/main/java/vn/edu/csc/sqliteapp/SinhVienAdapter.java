@@ -38,7 +38,7 @@ public class SinhVienAdapter extends ArrayAdapter<SinhVien> {
         TextView textView2 = convertView.findViewById(R.id.textView2);
 
         textView.setText(sinhVien.getName());
-        textView2.setText(sinhVien.getGender() == 1 ? "Male":"Female");
+        textView2.setText(sinhVien.getGender() == 0 ? "Male":"Female");
 
         if(sinhVien.getImage() == null){
             imageView.setImageResource(R.drawable.ic_launcher_background);
